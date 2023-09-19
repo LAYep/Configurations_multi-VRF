@@ -1,0 +1,36 @@
+hostname P2
+!
+ip cef
+!
+no ip domain lookup
+!
+interface Loopback0
+ ip address 10.10.10.2 255.255.255.255
+!
+interface FastEthernet0/0
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/1
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+interface Serial0/0/0
+ description Link to PE2
+ ip address 10.1.1.13 255.255.255.252
+ mpls ip
+!
+interface Serial0/0/1
+ description Link to PE1
+ ip address 10.1.1.6 255.255.255.252
+ mpls ip
+!
+router ospf 100
+ router-id 2.2.2.2
+ network 10.1.1.4 0.0.0.3 area 0
+ network 10.1.1.12 0.0.0.3 area 0
+ network 10.10.10.2 0.0.0.0 area 0

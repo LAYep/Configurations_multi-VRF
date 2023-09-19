@@ -1,0 +1,81 @@
+hostname PE1
+!
+ip vrf CE1-CE3
+ rd 10:5
+ route-target export 10:5
+ route-target import 10:5
+!
+ip vrf CE2-CE4
+ rd 10:6
+ route-target export 10:6
+ route-target import 10:6
+!
+ip cef
+no ip domain lookup
+!
+interface Loopback0
+ ip address 10.10.10.3 255.255.255.255
+!
+interface FastEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/0.5
+ encapsulation dot1Q 5
+ ip vrf forwarding CE1-CE3
+ ip address 10.10.5.1 255.255.255.0
+!
+interface FastEthernet0/0.6
+ encapsulation dot1Q 6
+ ip vrf forwarding CE2-CE4
+ ip address 10.10.6.1 255.255.255.0
+!
+interface Serial0/1/0
+ description Link to P1
+ ip address 10.1.1.1 255.255.255.252
+ mpls ip
+ clock rate 2000000
+!
+interface Serial0/1/1
+ description Link to P2
+ ip address 10.1.1.5 255.255.255.252
+ mpls ip
+ clock rate 2000000
+!
+router ospf 106 vrf CE2-CE4
+ router-id 4.4.4.6
+ redistribute bgp 100 subnets
+ network 10.10.6.0 0.0.0.255 area 0
+!
+router ospf 105 vrf CE1-CE3
+ router-id 4.4.4.5
+ redistribute bgp 100 subnets
+ network 10.10.5.0 0.0.0.255 area 0
+!
+router ospf 100
+ router-id 3.3.3.3
+ network 10.1.1.0 0.0.0.3 area 0
+ network 10.1.1.4 0.0.0.3 area 0
+ network 10.10.10.3 0.0.0.0 area 0
+!
+router bgp 100
+ bgp router-id 3.3.3.3
+ bgp log-neighbor-changes
+ neighbor 10.10.10.4 remote-as 100
+ neighbor 10.10.10.4 update-source Loopback0
+ neighbor 10.10.10.4 send-label
+ !
+ address-family vpnv4
+  neighbor 10.10.10.4 activate
+  neighbor 10.10.10.4 send-community extended
+ exit-address-family
+ !
+ address-family ipv4 vrf CE1-CE3
+  redistribute ospf 105
+ exit-address-family
+ !
+ address-family ipv4 vrf CE2-CE4
+  redistribute ospf 106
+ exit-address-family
+!

@@ -1,0 +1,51 @@
+hostname CE4
+!
+ip cef
+no ip domain lookup
+ip vrf CE1-CE3
+ rd 10:5
+ route-target export 10:5
+ route-target import 10:5
+!
+ip vrf CE2-CE4
+ rd 10:6
+ route-target export 10:6
+ route-target import 10:6
+!
+interface Loopback7
+ ip vrf forwarding CE1-CE3
+ ip address 192.168.7.7 255.255.255.0
+!
+interface Loopback8
+ ip vrf forwarding CE2-CE4
+ ip address 192.168.8.8 255.255.255.0
+!
+interface FastEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/1.7
+ encapsulation dot1Q 7
+ ip vrf forwarding CE1-CE3
+ ip address 10.10.7.7 255.255.255.0
+!
+interface FastEthernet0/1.8
+ encapsulation dot1Q 8
+ ip vrf forwarding CE2-CE4
+ ip address 10.10.8.8 255.255.255.0
+!
+router ospf 105 vrf CE1-CE3
+ router-id 8.8.8.5
+ log-adjacency-changes
+ capability vrf-lite
+ network 10.10.7.0 0.0.0.255 area 0
+ network 192.168.7.0 0.0.0.255 area 7
+!
+router ospf 106 vrf CE2-CE4
+ router-id 8.8.8.6
+ log-adjacency-changes
+ capability vrf-lite
+ network 10.10.8.0 0.0.0.255 area 0
+ network 192.168.8.0 0.0.0.255 area 8
+!
